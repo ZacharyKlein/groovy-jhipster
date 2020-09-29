@@ -10,7 +10,7 @@ buildscript {
 }
 
 plugins {
-    id "java"
+    id "groovy"
     id "maven-publish"
     id "idea"
     id "jacoco"
@@ -209,11 +209,14 @@ dependencies {
     annotationProcessor "io.micronaut:micronaut-validation"
     annotationProcessor "io.micronaut.data:micronaut-data-processor:$micronaut_data_version"
 
+    compileOnly("io.micronaut:micronaut-inject-groovy")
+    implementation "io.micronaut.groovy:micronaut-runtime-groovy"
+
     // Use ", version: jhipster_dependencies_version, changing: true" if you want
     // to use a SNAPSHOT release instead of a stable release
     implementation (group: "io.github.jhipster", name: "jhipster-framework") {
         exclude group: "org.springframework", module: "spring-context-support"
-        
+
         exclude group: "org.springframework.boot", module: "spring-boot-autoconfigure"
         exclude group: "org.springframework.boot", module: "spring-boot-starter-aop"
         exclude group: "org.springframework.boot", module: "spring-boot-starter-web"
@@ -343,3 +346,14 @@ if (project.hasProperty("nodeInstall")) {
 }
 
 compileJava.dependsOn processResources
+
+tasks.withType(GroovyCompile) {
+    groovyOptions.forkOptions.jvmArgs.add('-Dgroovy.parameters=true')
+}
+
+sourceSets {
+    main {
+        java { srcDirs = [] }
+        groovy { srcDirs += ['src/main/java'] }
+    }
+}
