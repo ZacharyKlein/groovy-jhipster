@@ -1,0 +1,16 @@
+version: '2'
+services:
+  groovyjhipster-app:
+    image: groovyjhipster
+    environment:
+      - _JAVA_OPTIONS=-Xmx512m -Xms256m
+      - MICRONAUT_ENVIRONMENTS=prod
+      - JDBC_URL=jdbc:mysql://groovyjhipster-mysql:3306/groovyjhipster?useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC&createDatabaseIfNotExist=true
+      - JDBC_PASSWORD=password
+      - JHIPSTER_SLEEP=30 # gives time for other services to boot before the application
+    ports:
+      - 8080:8080
+  groovyjhipster-mysql:
+    extends:
+      file: mysql.yml
+      service: groovyjhipster-mysql

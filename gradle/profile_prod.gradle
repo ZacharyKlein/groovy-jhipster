@@ -1,0 +1,61 @@
+dependencies {
+    testImplementation "com.h2database:h2"
+}
+
+def profiles = "prod"
+if (project.hasProperty("no-liquibase")) {
+    profiles += ",no-liquibase"
+}
+
+if (project.hasProperty("swagger")) {
+    profiles += ",swagger"
+}
+
+task webpack_test(type: NpmTask, dependsOn: "npmInstall") {
+    args = ["run", "webpack:test"]
+}
+
+task webpack(type: NpmTask, dependsOn: "npmInstall") {
+    args = ["run", "webpack:prod"]
+    environment = [APP_VERSION: project.version]
+}
+
+task webpackBuildDev(type: NpmTask, dependsOn: 'npmInstall') {
+    inputs.dir("src/main/webapp/")
+    inputs.files(fileTree('src/main/webapp/'))
+    outputs.dir("build/www/")
+    outputs.file("build/www/app/main.bundle.js")
+    args = ["run", "webpack:build"]
+}
+
+task copyIntoStatic (type: Copy) {
+    from 'build/www/'
+    into 'build/resources/main/static'
+}
+
+processResources {
+    inputs.property('version', version)
+    inputs.property('springProfiles', profiles)
+    filesMatching("**/application.yml") {
+        filter {
+            it.replace("#project.version#", version)
+        }
+        filter {
+            it.replace("#spring.profiles.active#", profiles)
+        }
+    }
+}
+
+test.dependsOn webpack_test
+processResources.dependsOn webpack
+
+processResources.dependsOn webpackBuildDev
+copyIntoStatic.dependsOn processResources
+assemble.dependsOn copyIntoStatic
+
+npmInstall.onlyIf { shouldWebpackRun() == true }
+
+def shouldWebpackRun() {
+    project.hasProperty('webpack')
+}
+

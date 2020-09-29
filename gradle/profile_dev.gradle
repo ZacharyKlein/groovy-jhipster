@@ -1,0 +1,81 @@
+configurations {
+    developmentOnly
+    runtimeClasspath {
+        extendsFrom developmentOnly
+    }
+}
+
+dependencies {
+    implementation "com.h2database:h2"
+}
+
+def profiles = "dev"
+if (project.hasProperty("no-liquibase")) {
+    profiles += ",no-liquibase"
+}
+if (project.hasProperty("tls")) {
+    profiles += ",tls"
+}
+
+tasks.withType(JavaExec) {
+    classpath += configurations.developmentOnly
+    jvmArgs('-XX:TieredStopAtLevel=1', '-Dcom.sun.management.jmxremote')
+    if (gradle.startParameter.continuous) {
+        systemProperties(
+            'micronaut.io.watch.restart':'true',
+            'micronaut.io.watch.enabled':'true',
+            "micronaut.io.watch.paths":"src/main"
+        )
+    }
+}
+
+task webpack(type: NpmTask) {
+    inputs.files("package-lock.json")
+    inputs.files("build.gradle")
+    inputs.dir("src/main/webapp/")
+
+    def webpackDevFiles = fileTree("webpack//")
+    webpackDevFiles.exclude("webpack.prod.js")
+    inputs.files(webpackDevFiles)
+
+    outputs.dir("build/resources/main/static/")
+
+    dependsOn npmInstall
+    args = ["run", "webpack:build"]
+    environment = [APP_VERSION: project.version]
+}
+
+task webpackBuildDev(type: NpmTask, dependsOn: 'npmInstall') {
+    inputs.dir("src/main/webapp/")
+    inputs.files(fileTree('src/main/webapp/'))
+    outputs.dir("build/www/")
+    outputs.file("build/www/app/main.bundle.js")
+    args = ["run", "webpack:build"]
+}
+
+task copyIntoStatic (type: Copy) {
+    from 'build/www/'
+    into 'build/resources/main/static'
+}
+
+processResources {
+    inputs.property('version', version)
+    filesMatching("**/application.yml") {
+        filter {
+            it.replace("#project.version#", version)
+        }
+    }
+}
+
+processResources.dependsOn webpack
+
+processResources.dependsOn webpackBuildDev
+copyIntoStatic.dependsOn processResources
+assemble.dependsOn copyIntoStatic
+
+npmInstall.onlyIf { shouldWebpackRun() == true }
+
+def shouldWebpackRun() {
+    project.hasProperty('webpack')
+}
+
