@@ -53,12 +53,6 @@ micronaut:
     intercept-url-map:
       - pattern: /
         access: isAnonymous()
-      - pattern: /message
-        access: isAnonymous()
-      - pattern: /groovyMessage
-        access: isAnonymous()
-      - pattern: /groovyMessage/**
-        access: isAnonymous()
       - pattern: /manifest.webapp
         access: isAnonymous()
       - pattern: /app/**/*.*

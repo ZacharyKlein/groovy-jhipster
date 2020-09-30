@@ -209,6 +209,7 @@ dependencies {
     annotationProcessor "io.micronaut:micronaut-validation"
     annotationProcessor "io.micronaut.data:micronaut-data-processor:$micronaut_data_version"
 
+    //DEMO: Groovy dependencies
     compileOnly("io.micronaut:micronaut-inject-groovy")
     implementation "io.micronaut.groovy:micronaut-runtime-groovy"
 
@@ -280,11 +281,6 @@ dependencies {
     implementation "org.zalando:problem-violations:$problem_version"
     implementation "org.zalando:jackson-datatype-problem:$problem_version"
 
-
-
-
-
-
     implementation ("io.springfox:springfox-swagger2") {
         exclude module: "mapstruct"
     }
@@ -313,6 +309,15 @@ dependencies {
     testRuntimeOnly "com.tngtech.archunit:archunit-junit5-engine:${archunit_junit5_version}"
     testImplementation "com.h2database:h2"
     liquibaseRuntime "com.h2database:h2"
+
+    //DEMO: Spock dependencies
+    testImplementation(enforcedPlatform("io.micronaut:micronaut-bom:$micronaut_version"))
+    testImplementation("io.micronaut:micronaut-inject-groovy")
+    testImplementation("org.spockframework:spock-core") {
+        exclude group: "org.codehaus.groovy", module: "groovy-all"
+    }
+
+    testImplementation("io.micronaut.test:micronaut-test-spock")
     //jhipster-needle-gradle-dependency - JHipster will add additional dependencies here
 }
 
