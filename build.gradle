@@ -352,6 +352,7 @@ if (project.hasProperty("nodeInstall")) {
 
 compileJava.dependsOn processResources
 
+//DEMO: Allow Groovy to handle joint compilation
 tasks.withType(GroovyCompile) {
     groovyOptions.forkOptions.jvmArgs.add('-Dgroovy.parameters=true')
 }
